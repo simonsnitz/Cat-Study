@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+
+<html>
+
+  <head>
+    
+    
+<!--
+        To Customize (1) # of main topics (2) # of subheading topics per main topic, must make this javascript changes:
+        
+        -(Y) click to scroll to: main topic bar
+        -(Y) click to scroll to: subheading bars
+        
+        -(Y) fix then scroll for main topic bar
+        -(Y) fix then scroll for subheading bars
+        
+        -(Y) scroll to change opacity for main topic bar
+        -(Y) scroll to change opacity for subheading bars
+        
+        Parameters to change for modifying # of topics/subsections
+        
+        #Topics:
+          - number of sec# divs under scrollBar div
+          - the actual number of main sections (topicHeader#, topicDescription#, relativeBox#)
+        
+        #subHeadings for given topic:
+          - number of sub## divs under subHeadingScroll# div
+          - number of subDes## divs at bottom of relativeBox# div
+          
+        
+    -->
+    
+    
+    <script type="text/javascript">
+      window.onload = function() {
+        
+        
+    //scoping function
+  (function() {
+    
+      
+      //allows you to flip between this study page and the question page, even if you click within this iframe
+  document.body.onkeydown = function(e){
+    if(e.keyCode === 191){
+      if(window.parent.document.body.scrollTop == 0){
+        window.parent.scrollTo(0,1000);
+      }
+      else{
+        window.parent.scrollTo(0,0);
+      }
+    }
+  }
+      
+        
+        var numTopics = document.getElementById('scrollBar').childElementCount;
+        var loop = [];
+          for(i=1;i<numTopics;i++){
+            window['numSubtopics'+i] = document.getElementById('subheadingScroll'+i).childElementCount;
+            loop = loop.concat(window['numSubtopics'+i]);
+          }
+/*
+        var numSubtopics1 = 4;
+        var numSubtopics2 = 5;
+        var numSubtopics3 = 2;
+        var numSubtopics4 = 3;
+        var numSubtopics5 = 4;
+        
+        var loop = [numSubtopics1,numSubtopics2,numSubtopics3,numSubtopics4,numSubtopics5];
+*/
+  //creates variable to get Elements based on number in 'numTopics'    var named sec#
+       var secList = [];               // [sec1,sec2,sec3,sec4 ...]
+       for (i=1;i<=numTopics;i++){
+          window["sec"+i] = document.getElementById('sec'+i);     //create get elements (sec#)
+          secList[i-1] = window["sec"+i];
+        }
+        
+  //defines width of top bar sections depending on # of sections
+      var numSecs = document.getElementById('sec1').parentElement.childElementCount;
+      var numSecCalc = 100/numSecs;
+      for(i=0;i<secList.length;i++){
+        document.getElementById("sec"+(i+1)).style.width = numSecCalc+'%';
+      }
+  
+  
+////click subheading text on 2nd bar to scroll to it's section (fully modular)////
+
+    var scr = window.scrollY;  //accounts for current scroll position to calc top or subSection headings
+    var bT = (document.getElementById('scrollBar').scrollHeight*2);  //height of both top bar and subheading bar
+        
+  //fill array subList with strings to get Element names in for loop
+    var subList = [];
+    var getSubList = [];
+    for (i=1;i<numTopics;i++){              //for # of topics listed in numTopics, loop:
+          var numSubtopic = loop[i-1];
+          getSubList[i-1] = new Array;
+          for(k=1;k<=numSubtopic;k++){
+            subList = subList.concat("sub"+k+i);
+            window["sub"+k +i] = document.getElementById("sub"+k +i);
+            getSubList[i-1].push(window["sub"+k +i]);
+          }
+        }
+   
+    //defines var for locating top of each subsection        var named topSec##  and filling array with those variables
+        var topSecList = [];
+        for (i=1;i<numTopics;i++){              //for # of topics listed in numTopics, loop:
+          var numSubtopic = loop[i-1];
+          for(k=1;k<=numSubtopic;k++){
+            window["topSec"+k +i] = document.getElementById("subDes"+k +i).getBoundingClientRect().top + scr -bT;
+            topSecList = topSecList.concat(window['topSec'+k+i]);
+          }
+        }
+        
+        for(i=0;i<subList.length;i++){
+          (function(i){                     //scoping function AHHHHH!!
+            var elem = document.getElementById(subList[i]);
+            elem.addEventListener("click",function(){window.scrollTo(0,(topSecList[i])); },false );
+          })(i)
+        }
+
+
+
+          
+////click to scroll to different main topics (fully modular)////
+
+        var topBar = document.getElementById('scrollBar').offsetTop;  //defines starting scroll position of top menu
+        var description = document.getElementById('description');
+        
+    //declares 'relativeBox' variables for 'click to scroll to'.
+    var relativeOffset = [];
+    var relativeScroll = [];
+        for (i=1;i<=loop.length;i++){
+          window['relativeBox'+i+'Offset'] = document.getElementById('relativeBox'+i).offsetTop;   // var relativeBox1Offset
+          relativeOffset = relativeOffset.concat(window['relativeBox'+i+'Offset']);
+          window['relativeBox'+i+'Scroll'] = document.getElementById('relativeBox'+i).scrollHeight;   //var relativeBox1Scroll
+          relativeScroll = relativeScroll.concat(window['relativeBox'+i+'Scroll']);
+        }
+  
+          sec1.onclick = function(){    //standard
+            window.scrollTo(0,topBar);
+          }
+          sec2.onclick = function(){    //must have at least 1 main topic
+            window.scrollTo(0,description.offsetTop + description.scrollHeight);
+          }
+          
+          for (i=2;i<secList.length;i++){
+            (function(i){
+            var elem = secList[i];
+            elem.addEventListener('click', function(){
+              //alert(i);
+              window.scrollTo(0,(relativeOffset[i-2] + relativeScroll[i-2]));
+              },false);
+            })(i)
+          }
+
+          
+          
+////Fully modular change opacity function. bolds first parameter and makes all others more opaque////
+        function changeOpacity(){
+          remArray = [];
+          add1 =arguments[0];
+          for(i=1;i<arguments.length;i++){
+            window['rem'+i] = arguments[i]; //if avoid global variables, will have to manually create array = []; and add rem1,rem2,rem3 ... via for loop
+            remArray = remArray.concat(arguments[i]);
+          }
+            add1.classList.add('highOpacity'); //add bold to 'overview'
+            add1.classList.remove('lowOpacity');
+            for(i=0;i<remArray.length;i++){   //remove bold from all others
+              remArray[i].classList.remove('highOpacity');
+              remArray[i].classList.add('lowOpacity');
+            }
+          }
+          
+          
+        window.onscroll = function() {    //should move all variables outside onscroll function
+          
+            (function(){
+          
+      //scroll to fix for top bar          standard
+          var pageTop = document.body.scrollTop;  //defines the scroll position at top of window
+          var scrollBar = document.getElementById('scrollBar');
+          if (pageTop > topBar){
+            scrollBar.classList.add('addFix');
+            scrollBar.classList.remove('goBack');
+          }
+          else {
+            scrollBar.classList.remove('addFix');
+            scrollBar.classList.add('goBack');
+          }
+          
+      //standard variables
+          var pageTopPlus = document.body.scrollTop + scrollBar.scrollHeight;
+          var pageTopPlusPlus = document.body.scrollTop + (scrollBar.scrollHeight*2.6); //2.6, idk, just worked that way. may fail later :/
+          
+  
+         //creates variable to get Elements based on number in 'numTopics'    var named subheadingScroll#
+          var subheadingScroll = [];
+       for (i=1;i<=numTopics;i++){
+          window["subheadingScroll"+i] = document.getElementById('subheadingScroll'+i);     //create get elements (subheadingScroll#)
+          subheadingScroll = subheadingScroll.concat(window['subheadingScroll'+i]);
+        }
+        
+  ///////// sets the width of sub-bar section headings depending on the number of sections
+      for(i=0;i<subheadingScroll.length-1;i++){
+        var numSec2 = subheadingScroll[i].childElementCount;
+        var numSecCalc2 = 100/numSec2;
+        var children = subheadingScroll[i].children;
+        for(k=0;k<numSec2;k++){
+          var current = children[k];
+          current.style.width = numSecCalc2+'%';
+        }
+      }
+
+///// changes scroll/fix positioning of subheading bars at certain scroll heights (Fully Modular) ////
+
+
+          for(i=0;i<numTopics-1;i++){
+            
+            topBar2 = relativeOffset[i];                        //topFirstBar
+            topBarPlus = topBar2 + relativeScroll[i];       //topBarPlus
+            thisBar = subheadingScroll[i];                     //firstBar
+            
+          if (pageTopPlus < topBar2){                                //if top of page above subheading bar.
+            thisBar.classList.add('goBack1');
+            thisBar.classList.remove('goBack12');
+            thisBar.classList.remove('addSubFix');
+          }
+          else if (pageTopPlus > topBar2 && pageTopPlusPlus < topBarPlus){    //if top of page within subsection area.
+            thisBar.classList.add('addSubFix');
+            thisBar.classList.remove('goBack1');
+            thisBar.classList.remove('goBack12');
+          }
+          else if (pageTopPlusPlus > topBarPlus){                   //if top of page below subheading bar.
+            thisBar.classList.add('goBack12');
+            thisBar.classList.remove('goBack1');
+            thisBar.classList.remove('addSubFix');
+          }
+            
+          }
+          
+          
+      //change opacity of top bar headings based on scroll position
+          var topic1Dist = (description.offsetTop + description.scrollHeight -1);    //standard (must have at least 1 subheading)
+          
+          var topicDistList = [topic1Dist];
+          
+      //creates variable # of 'topic#Dist' vars.
+          for(i=0;i<relativeOffset.length-1;i++){
+            window['topic'+(i+2)+'Dist'] = (relativeOffset[i] + relativeScroll[i] -1);
+            topicDistList[i+1] = (window['topic'+(i+2)+'Dist']);
+          }
+        
+          
+        var topicDistList2 = []; // new Array containing conditional statements and page heights
+  //fills first and last positions (standard)
+          topicDistList2[0] = pageTop < topic1Dist;   //topic1Dist set to beginning of array
+          topicDistList2[numTopics-1] = pageTop > topicDistList[topicDistList.length-1];    //last element in topicDistList array set to last element in array
+  //fills middle positions
+          for (i=1;i<numTopics-1;i++){
+            topicDistList2[i] = pageTop > topicDistList[i-1] && pageTop < topicDistList[i];  //fill rest of elements in topicDistList2 array
+          }
+          
+  //create array with different arrangements of sec#.
+        var secListArr = [];
+        for(i=0;i<secList.length;i++){
+          secListArr[i] = secList.slice(0);
+          roo2 = secListArr[i].splice(i,1)[0];
+          secListArr[i].splice(0,0,roo2);
+        }
+          
+  //loop to change opacity of top bar
+          for (i=0;i<topicDistList2.length;i++){
+            if (topicDistList2[i]){
+              changeOpacity.apply(this,secListArr[i]);
+            }
+          }
+
+
+/* change opacity of subBar on scroll position */
+
+  //create array with different arrangements of sec#.
+
+        var subListArr = [];
+        for(i=0;i<getSubList.length;i++){
+          subListArr[i] = [];
+          for (k=0;k<getSubList[i].length;k++){
+            subListArr[i][k] = getSubList[i].slice(0);
+            roo2 = subListArr[i][k].splice(k,1)[0];
+            subListArr[i][k].splice(0,0,roo2);
+            }
+        }
+
+//alert(getSubList[0]); -> [sub11,sub21,sub31,sub41]; 4 arrangements of this
+//alert(getSubList[1]); -> [sub12,sub22,sub32,sub42]; 4 arrangements of this
+//alert(getSubList[2]); -> [sub13,sub23,sub33,sub43]; 4 arrangements of this
+
+        var x = 1;
+        var topicSecParse = [];
+        for(i=0;i<numTopics-1;i++){   //number of non-overview topics   0,1,2
+          subTop = loop[i]-1;
+          topicSecParse[i] = [];
+          topicSecParse[i][0] = pageTop < topSecList[x]-1;            //defines first element of every 'topic array'
+          topicSecParse[i][subTop] = pageTop > topSecList[x+loop[i]-2]-1;   //defines last element of every 'topic array'  wont work if have 1 subheading
+          x+= loop[i];
+        }
+
+        var z = 1;
+        for(i=0;i<numTopics-1;i++){
+          for(k=1;k<loop[i]-1;k++){
+            topicSecParse[i][k] = pageTop > topSecList[z]-1 && pageTop < topSecList[z+1]-1;
+            z += 1;
+          }
+          z -= (loop[i]-2);
+          z += loop[i];
+        }
+        
+ 
+          
+          for (j=0;j<numTopics-1;j++){
+            for (n=0;n<loop[j];n++){
+              if (topicSecParse[j][n]){
+                changeOpacity.apply(this,subListArr[j][n]);
+              }
+            }
+          }
+ 
+        })();   //end of window scroll function
+        }
+        
+})();
+      }
+           //end of script
+      
+    </script>
+    
+    <style>
+    *{box-sizing:border-box;
+    }
+
+
+    .addFix{       /*add fix position for main bar*/
+      position:fixed;
+      top:0;
+    }
+    .addSubFix{     /*add fix position for subheading bars*/
+      position:fixed;
+      top:7vh;
+    }
+    .goBack{      /*top position for main bar*/
+      position:absolute;
+      top:20vh;
+    }
+
+    .goBack1{    /*top position for subheading bars*/
+      position:absolute;
+      top:0;
+    }
+    .goBack12{   /*bottom position for subheading bars*/
+      position:absolute;
+      bottom:0;
+    }
+    
+    
+    #subject{
+      width:98vw;
+      height:15vh;
+      text-align:center;
+      font-size:3vmin;
+      //border:1px solid black;
+      //font-family:garamond;
+    }
+    #subject h1{
+      padding-top: 2.5%;
+    }
+
+    .scrollFixBar{
+      z-index:10;
+      background-color:white;
+      width:98vw;
+      float:left;
+      margin-left:0;
+      height:7vh;
+      border-top:1px solid black;
+      border-bottom:1px solid black;
+      margin-bottom:5%;
+      text-align:center;
+    }
+    .topics{                                     /*defines font size and top bar div width*/
+      position:relative;
+      height:100%;
+      display:inline-block;
+      font-size: 1.3vmin;
+      cursor:pointer;
+      border-right:0.8px solid black;
+    }
+    .topics h2{
+      position:absolute;
+      top:50%;
+      left: 50%;
+      transform: translateY(-50%) translateX(-50%);
+      margin:auto;
+    }
+    #description{
+      margin-top:15vh;
+      width:98vw;
+      float:left;
+      position:relative;
+      font-size:1.3vmax;
+    }
+    .topicOverview{
+      float:left;
+      width:90%;
+      margin-left:3%;
+      margin-bottom:10%;
+      line-height:80%;
+      position:relative;
+    }
+    .topicOverview p {
+      font-size:2vmax;
+      line-height:110%;
+    }
+    .topicOverview h2 {
+     text-align:center;
+     font-size:2vmax;
+    }
+      .relativeBoxes{
+      position:relative;
+      float:left;
+      width:100%;
+      height:100%;
+    }
+    .topicHeader{
+      width:95%;
+      float:left;
+      text-align:center;
+      border-bottom:1px solid black;
+      margin:5% 0 5% 3%;
+      position:relative;
+      font-size:2vmax;
+    }
+    .topicDescription{
+      position:relative;
+      border:1px solid black;
+      text-align:center;
+      width:60vw;
+      float:left;
+      margin-left:19vw;
+      padding:1em;
+      margin-bottom:5%;
+      font-size:1.3vmax;
+    }
+    .topicDescription p{
+      font-size:1.5em;
+    }
+    .lowOpacity{
+      opacity:0.4;
+    }
+    .highOpacity{
+      opacity:1;
+    }
+    #withPic{
+      display:inline-block;
+    }
+    #withPic p {
+      width:42vw;
+      float:left;
+    }
+    #withPic img {
+      width:40vw;
+      float:right;
+      margin-left:2vw;
+    }
+    
+    </style>
+  </head>
+
+  <body>
+    
+    <div id='subject'>
+      <h1>Cats</h1>
+    </div>
+    
+    <div id='scrollBar' class='scrollFixBar goBack' style='z-index:100'>
+      <div id='sec1' class='topics highOpacity'>
+        <h2>Overview</h2>
+      </div
+      ><div id='sec2' class='topics highOpacity'>
+        <h2>Cat Biology</h2>
+      </div
+      ><div id='sec3' class='topics lowOpacity'>
+        <h2>Cat Behaviour</h2>
+      </div>
+    </div>
+    
+  <div id='description'> <!--auto-add topic descriptions? -->
+    <img src='https://cdn.pixabay.com/photo/2015/10/25/09/30/cat-1005489_1280.jpg' style='width:90vw;margin-left:4vw'>
+    <div style='width:90vw;margin-left:4vw; text-align:center'>
+      <h1>Cats are fuzzy creatures that coexist with humans. Despite being an invasive species, <i>Felis catus</i> are welcomed, and even pampered by humanoids who are enamoured by their cute fuzzy cuddliness.
+      </h1>
+    </div>
+  </div>
+    
+    <div class='topicHeader'>
+      <h1>Cat Biology</h1>
+    </div>
+    <div class='topicDescription'>
+      <p>Cats have <b>cool and specialized body parts</b>, like extra vertebrae for flexibility, long canine teeth for paralyzing prey, and protractble and retractable claws</p>
+      <p>Our feline friends complain less about the temperature than us and can literally <b>survive from a diet consisting of only meat</b> (a true carniverous bro)</p>
+      <p>These fuzzy things have super good hearing, sensitive smelling, crazy night vision, but their sense of taste sucks</p>
+    </div>
+    
+  <div id='relativeBox1' class='relativeBoxes'>
+    <div id='subheadingScroll1' class='scrollFixBar goBack1'>
+      <div id='sub11' class='topics'>
+        <h2>Body Parts</h2>
+      </div
+      ><div id='sub21' class='topics'>
+        <h2>Inner Body Stuff</h2>
+      </div
+      ><div id='sub31' class='topics'>
+        <h2>Sensing Powers</h2>
+      </div>
+    </div>
+    
+    <div class='topicOverview' style='margin-top:15vh' id='subDes11'>
+          <h2>Body Parts</h2>
+      <p><i><u>Fat Cats (weight)</u></i></p>
+    <div id='withPic'>
+      <p>Household cats generally weigh between <b>9 and 10 pounds</b>. Fat cats can be up to 50 pounds and tiny cats can be less than 4 pounds.
+      <br><br>Feral cats are usually lighter because they dont have 24/7 buffets provided by humans.
+      <br><br>Cats have <b>3 more vertebrae</b> compared to humans in their upper to middle region. This gives them extra spinal mobility and flexibility.
+      <br><br>Cat forelimbs are attached to the shoulder by a free-floating clavical bone, in contrast with humans. This allows cats to pass their body through any space as long as their head can fit.</p>
+      <img src='https://c2.staticflickr.com/4/3057/3017331832_29ec5246bb_b.jpg'>
+    </div>
+      
+      <p><i><u>Cat Skull</u></i></p>
+      <p>The cat skull is super kewl because of its huge eye sockets and specialized jaw.</p>
+      <p>Using this special jaw and long canine teeth, cats can deliver a "finish him, fatality" blow by <b>inserting these teeth between two of the preys vertebrae</b>, thus severing its spical cord and causing irreversible paralysis.</p>
+      <p>Housecats have narrowly spaced canine teeth, so their "final blow" move is only effective againts smaller rodents.</p>
+      
+      <p><i><u>Toes and Claws</u></i></p>
+    <div id='withPic'>
+      <p>Cats <b>walk straight up on their toes</b> such that the bones of their feet touch the ground.
+      <br><br>Cats are also super stealthy, since they place each hind paw alomst directly where the corresponding forepaw just was, such that they <b>produce minimal tracks</b>.
+      </p>
+      <img src='https://upload.wikimedia.org/wikipedia/commons/7/7e/Claw.jpg'>
+    </div>
+      <p>Cats have <b>protractable and retractable claws</b>, which makes it painful when they kneed you. Retracting the claws <b>keeps them sharp</b> as to prevent wear from contacting the ground. The forefeet claws are usually sharper than those in the back.</p>
+
+    </div>
+    
+    <div class='topicOverview' id='subDes21'>
+          <h2>Inner Body Stuff</h2>
+      <p><i><u>Body Temperature</u></i></p>
+      <p>Cats are <b>less fussy about temperaure</b>. They are comfortable with temperatures up to 126F while humans complain when its about 100F outside.</p>
+      <p>Cats can conserve heat by <b>reducing blood flow to their skin</b> and they can lose heat by evaporating water from their mouths.</p>
+      <p><b>Cats cant really sweat</b>. Literally, their sweat glands are on their feet. They only pant for heat relief at super high temperatures, or if theyre stressed. Also, because they lack a circadian rhythm, their body temperature doesnt vary throughout the day. This also may explain why they are active at times during the day and night</p>
+      <p>The cat <b>kidneys are SOOOO efficient</b> they can straight up live on meat. No water. And yes, Cats lift.</p>
+      
+      <p><i><u>What Cats Eat</u></i></p>
+    <div id='withPic'>
+      <p><b>Cats need meat to survive</b>, or at least nutrients that are only found in meat. They also have a difficult time digesting plants, like veggies and stuff.
+      <br><br><b>Cats are also lactose intolerant!</b> They have a hard time digesting the sugars in milk, which can cause diarrhea. They also may <b>dislike new flavors</b>, so theyre pretty picky eaters.
+      <br><br>Cats depend on a constant supply of the amino acid arginine. Not getting enough arginine can quickly be feline-fatal. Also, cats need taurine. And if they dont then they can go blind.</p>
+      <img src='https://c1.staticflickr.com/5/4023/4712261950_9dc1b1a61b_b.jpg'>
+    </div>
+      <p>The cat stomach is adapted to digesting meat. <b>Cat food that is vegetarian or vegan must have added suppliments</b> found in meat, and oftentimes these non-meat diets still fail to provide all cat-essential nutrients.</p>
+
+    </div>
+    
+    <div class='topicOverview' id='subDes31'>
+          <h2>Sensing Powers</h2>
+      <p><i><u>Seeing</u></i></p>
+    <div id='withPic'>
+      <p>Cats have super night vision, such that they are capable of seeing at <b>one-sixth the light</b> level needed for human vision.
+      <br><br>They have a specialized eye thing called a tapetum lucidum, which captures light that reflects off the retina. This makes their eyes look greenish when you take a picture of your fuzzy companion with the flash on.
+      <br><br>Housecats have slit eyes, which <b>helps them focus bright light</b>. However, they do have poor color vision.</p>
+      <img src='https://cdn.pixabay.com/photo/2013/09/07/08/29/cat-179842_1280.jpg'>
+    </div>
+      
+      <p><i><u>Hearing</u></i></p>
+      <p>These cats here have <b>mad good hearing</b>. </p>
+      <p>Cats can detect higher-pitched sounds than dogs or humans. The human hearing range is about 20hz to 20,000hz, whereas the cat hearing range is 55hz to about <b>79,000hz</b>. Kray.</p>
+      <p>They have moveable ears, which can specifically focus noises.</p>
+      <p><b>Cats also can hear ultrasound</b>, such as that produced by rodents, and can use it for hunting but cannot produce ultrasound.</p>
+      
+      <p><i><u>Smelling</u></i></p>
+    <div id='withPic'>
+      <p>Cats also have an <b>awesome sense of smell</b>.
+      <br><br>They are <b>sensitive to pheromones</b> that they use to communicate through urine spraying.
+      <br><br>Cats are super sensitive to a compound called nepetalactone produced from catnip and other plants. The mechanism of this cat drug is not known, but it has been thought to mimic a pheromone and stimulate social behaviours. Maybe like alcohol for humans?
+      </p>
+      <img src='https://c1.staticflickr.com/1/155/354864230_a8fe1fe864_z.jpg?zz=1'>
+    </div>
+      <p>BTW, <b>cats have a terrible sense of taste</b>. 20-times fewer taebuds than humans, so they dont care what food you give them. Chill.</p>
+      
+      <p><i><u>Navigation and sensation</u></i></p>
+    <div id='withPic'>
+      <p>Felines have a bunch of moveable whiskers all over their body, but especially in their face.
+      <br><br>Their <b>whiskers are used to sense location in the dark</b> by touch and sensing air currents. Touching whiskers triggers a protective blink reflex to protect the eyes from damage. ... Dont try it. Pls.</p>
+      <img src='https://cdn.pixabay.com/photo/2016/05/15/03/29/cat-1393075_1280.jpg'>
+    </div>
+    </div>
+    
+  </div>  <!--relativeBox1-->
+    
+    <div class='topicHeader'>
+      <h1>Cat Behavior</h1>
+    </div>
+    <div class='topicDescription'>
+      <p>Kittys are the <b>most social of all earth cats</b>. They sleep a lot, make all sorts of noises, and dont care about the random toys you throw at their face.</p>
+      <p>Cats fight with <b>brolic face slaps</b>, but things usually dont get too intense. When they hunt and deliver their prey, its not a present, theyre trying to teach you to hunt. Cause U lazy.</p>
+      <p>Ferocius <b>felines kill MAD birds!</b> Cat populations exceed carrying capacity in some places and they drove some bird species to extinction.</p>
+    </div>
+    
+  <div id='relativeBox2' class='relativeBoxes'>
+    <div id='subheadingScroll2' class='scrollFixBar goBack1'>
+      <div id='sub12' class='topics'>
+        <h2>Social Cats</h2>
+      </div
+      ><div id='sub22' class='topics'>
+        <h2>Fighting and Hunting</h2>
+      </div
+      ><div id='sub32' class='topics'>
+        <h2>Impact on Prey</h2>
+      </div>
+
+    </div>
+    
+    <div class='topicOverview' style='margin-top:15vh' id='subDes12'>
+          <h2>Social Cats</h2>
+      <p><i><u>Sociability</u></i></p>
+    <div id='withPic'>
+      <p>Housecats are active both during the day and night. They tend to <b>sleep longer than the average animal</b>, about 12 to 16 hours, and more so as they age.
+      <br><br>Feral cat colonies that form around a food source usually have one dominant cat over others. <b>Each cat holds a distinct territory</b>, with male cats having 10 times the territory area as females. Territories are marked with urine spraying around face level.</p>
+      <img src='http://www.publicdomainpictures.net/pictures/170000/nahled/three-maine-coon-cats.jpg'>
+    </div>
+    <p>Over years of living with humans, domestic housecats may think of humans as a surrogate for the cats mother. By this, adult cats may live an extended kittenhood and it is possible that the high-pitched cat noises they make may mimic the cries of an infant.</p>
+      
+      <p><i><u>Communication</u></i></p>
+      <p><b>Housecats produce a bunch of noises</b>, from hissing, purring, growling, to  meowing, but feral cats are generally silent.</p>
+      <p><b>Cats have body languge</b>: a raising tail is a friendly greeting, flattened ears shows hostility.</p>
+      <p>Purring may be a mechanism of reassurance between the mother cat and nursing kittens. <b>Purring is weird and unique</b>, because other cat species besides the housecat (tiger, lion, jaguar) do purr but only while exhaling.</p>
+      
+      <p><i><u>Playing</u></i></p>
+    <div id='withPic'>
+      <p>Young kittens love to play. It <b>mimics behaviours of hunting</b> and is important for learning how to hunt.
+      <br><br>Cats do like playing with toys that mimic prey, but they quickly become habitualized to a toy and lose interest.
+      <br><br><b>Toy Dangers:</b> String can get caught in the base of the felines tongue and move into the intestines, causing a medical emergency. <b>Laser pointers</b> avoid this problem, but even "cat safe" ones can easily blind cats and the felines can become frustrated becuase they cant catch the "prey".</p>
+      <img src='https://cdn.pixabay.com/photo/2016/03/03/20/19/cat-1234950_1280.jpg'>
+    </div>
+
+    </div>
+    
+    <div class='topicOverview' id='subDes22'>
+          <h2>Fighting and Hunting</h2>
+      <p><i><u>Fighting</u></i></p>
+    <div id='withPic'>
+      <p>The most common reason for fighting is <b>competition between two males</b> for a female cat. And yes, males cats are more likely to fight than females.
+      <br><br>Another common reason for organized cat fight clubs is <b>territorial disputes</b>, similar to humans. Female cats also fight over territory or to defend their little ones.
+      <br><br>Fights often involve <b>brolic face slaps</b> and bites. Serious damage is rare, since most fights are short and the losed runs away with a few face and ear scratches. </p>
+      <img src='https://cdn.pixabay.com/photo/2016/09/25/14/11/cat-1693795_1280.jpg'>
+    </div>
+      <p>However fights for mating rights are more intense. So if you ever see a feral cat with a scratched up face, thats what ... you know.</p>
+      
+      <p><i><u>Hunting</u></i></p>
+      <p>Cats hunt small things, like birds and rodents. <b>Theyre even used as forms of pest control!</b></p>
+      <p>They use two hunting strategies, either by actively <b>stalking</b> prey, or by waiting to <b>ambush</b>.</p>
+      <p>Cats often play with their prey by releasing it after capture. This is thought to help the feline <b>ensure that the prey is weak</b> enough to be killed without endangering itself.</p>
+      <p>Housecats are also thought to bring kills to their human owners to try and teach the human how to hunt or to help provide food for the human, as if it were feeding an elderly cat or a kitten.</p>
+      
+    </div>
+    
+    <div class='topicOverview' id='subDes32'>
+          <h2>Impact on Prey</h2>
+      <p><i><u>Cats are Major Predators</u></i></p>
+    <div id='withPic'>
+      <p><b>Housecats are a major predator to native wildlife</b>. They killed about 1.4 to 3.7 billion birds and 6.9 to 20.7 billion mammals each year!
+      <br><br>Most of this killing in the US is done by 80 million feral and stray cats. But this may be a big risk for bird and rodent populations.
+      <br><br>Even in places well populated with cats, such as Western Europe, <b>cat populations are growing and exceeding carrying capacities</b>, due to an abundance of food provided by humans and domestication in general.</p>
+      <img src='https://upload.wikimedia.org/wikipedia/commons/7/74/Cat-eating-prey.jpg'>
+    </div>
+
+      
+      <p><i><u>Impact on Birds</u></i></p>
+    <div id='withPic'>
+      <p>Cats have been suggested to <b>kill billions of birds</b> each year in the US.
+      <br><br>However, cats can kill rats, which eat bird eggs and young birds. Thus, cats can also help bird populations in an indirect way.
+      <br><br>Nevertheless, birds can be 60% of the cats diet and felines are thought to be a major reason for a decline in native bird populations.
+      </p>
+      <img src='https://cdn.pixabay.com/photo/2016/09/05/13/25/cat-1646566_1280.jpg'>
+      </div>
+      <p>Domestic housecats are also responsible for a decline in bird populations and have even <b>driven some species to extinction</b>, such as the Auckland island merganser, the Chatham island rail, the flightless Stephens Island wren, and many more. Island birds are especially vulnerable</p>
+      
+      <br><br>
+            <h4 style='text-align:center'>Information Credit to Wikipedia!</h4>
+    </div>
+
+  </div> <!--relative box-->
+      
+  </body>
+
+</html>
